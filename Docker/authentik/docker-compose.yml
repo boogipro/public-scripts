@@ -1,0 +1,93 @@
+#docker-compose.yml
+#cihan gueler
+#06.12.2025
+services:
+  postgresql:
+    container_name: authentik_postgresql
+    hostname: authentik_postgresql
+    env_file:
+    - authentik.env
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test: ["CMD-SHELL", "sh -c 'pg_isready --username=$$(cat $${POSTGRES_USER_FILE}) --dbname=$$(cat $${POSTGRES_DB})' || exit 1"]
+      timeout: 5s
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+    - ./postgres:/var/lib/postgresql/data
+    secrets:
+      - pg_pass
+      - pg_user
+      - pg_db
+    networks:
+      authentik:
+        ipv4_address: 172.29.0.3
+  server:
+    container_name: authentik_server
+    hostname: authentik_server
+    command: server
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - authentik.env
+    image: ghcr.io/goauthentik/server:2025.10.2
+    restart: unless-stopped
+    volumes:
+    - ./authentik/media:/media
+    - ./authentik/custom-templates:/templates
+    secrets:
+      - authentik_key
+      - pg_pass
+      - pg_user
+      - pg_db
+    networks:
+      authentik:
+        ipv4_address: 172.29.0.4
+  worker:
+    container_name: authentik_worker
+    hostname: authentik_worker
+    command: worker
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - authentik.env
+    image: ghcr.io/goauthentik/server:2025.10.2
+    restart: unless-stopped
+    user: root
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./authentik/media:/media
+    - ./authentik/certs:/certs
+    - ./authentik/custom-templates:/templates
+    secrets:
+      - authentik_key
+      - pg_pass
+      - pg_user
+      - pg_db
+    networks:
+      authentik:
+        ipv4_address: 172.29.0.5
+
+volumes:
+  database:
+    driver: local
+
+secrets:
+  pg_pass:
+    file: ./pg_pass
+  authentik_key:
+    file: ./authentik_key
+  pg_user:
+    file: ./pg_user
+  pg_db:
+    file: ./pg_db
+
+networks:
+  authentik:
+    name: authentik
+    external: true
+    driver: bridge

@@ -91,7 +91,7 @@ fi
 
 log "Backup directory created: $BACKUP_DIR"
 
-# 3. Loop through each source and synchronize it to the destination.
+# 4. Loop through each source and synchronize it to the destination.
 for SOURCE in "${SOURCES[@]}"; do
     if [ -e "$SOURCE" ]; then
         log "Syncing '$SOURCE' to '$DESTINATION'..."

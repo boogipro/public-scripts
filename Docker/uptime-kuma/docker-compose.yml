@@ -1,0 +1,25 @@
+#docker-compose.yml
+#cihan gueler
+#26.01.2026
+#https://github.com/louislam/uptime-kuma?tab=readme-ov-file
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2
+    container_name: uptime-kuma
+    hostname: uptime-kuma
+    restart: unless-stopped
+    volumes:
+      - ./data:/app/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    #ports:
+      # <Host Port>:<Container Port>
+      #- "3001:3001"
+    networks:
+      kuma:
+        ipv4_address: 172.44.0.3
+
+networks:
+  kuma:
+    name: kuma
+    driver: bridge
+    external: true

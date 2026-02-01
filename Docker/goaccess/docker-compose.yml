@@ -1,0 +1,25 @@
+#docker-compose.yml
+#cihan gueler
+#01.11.2024
+services:
+    goaccess:
+        image: 'xavierh/goaccess-for-nginxproxymanager:latest'
+        container_name: goaccess
+        hostname: goaccess
+        restart: unless-stopped
+        #ports:
+            #- '7880:7880'
+        env_file:
+            - goaccess.env
+        volumes:
+        - ../nginx/logs:/opt/log:ro
+        - ./data:/opt/custom
+        networks:
+            goaccess:
+                ipv4_address: 172.27.0.10
+
+networks:
+  goaccess:
+    name: goaccess
+    external: true
+    driver: bridge
